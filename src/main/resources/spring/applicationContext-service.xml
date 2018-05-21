@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:context="http://www.springframework.org/schema/context" xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:aop="http://www.springframework.org/schema/aop" xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+	http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.0.xsd
+	http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.0.xsd http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.0.xsd
+	http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-4.0.xsd">
+
+	<!-- 
+		包扫描器，扫描带@Service注解的类 
+		注意扫描的路径, 去service模块的src/main/java目录下,新建这个包:"com.cj.service".
+		注意,与进销存系统不同的是,这里的各层都拆开了,分为各个工程,
+		所以,这里不用排除扫描@Controller注解了,因为service模块里根本没这个注解.
+		下面这行,是杜云龙的,有一个缺陷: 如果其他同事不用"service"作为service层的包名,那么这样就不行了.
+		如果有需要,再去BB项目里找李旭的方式.
+	-->
+	<context:component-scan base-package="com.cj.core.service"></context:component-scan>
+
+
+	<!--#######################################redis配置#######################################-->
+	<!-- 
+		2.配置redis客户端单机版的连接池.
+		constructor-arg: 是构造方法.
+		host: 是构造方法的第一个参数. 为Redis服务器的IP.
+		port: 是构造方法的第二个参数. 为Redis服务器的端口.
+	-->
+	<!--redisPool初始化时需要的config对象-->
+	<bean id="jedisPoolConfig" class="redis.clients.jedis.JedisPoolConfig">
+		<property name="maxTotal" value="50" />
+		<property name="maxIdle" value="5" />
+		<property name="maxWaitMillis" value="2000" />
+		<property name="testOnBorrow" value="false" />
+	</bean>
+	<bean id="jedisPool" class="redis.clients.jedis.JedisPool">
+		<constructor-arg name="poolConfig" ref="jedisPoolConfig"></constructor-arg>
+		<constructor-arg name="host" value="39.105.62.153"></constructor-arg>
+		<constructor-arg name="port" value="6500"></constructor-arg>
+		<constructor-arg name="timeout" value="2000"></constructor-arg>
+		<constructor-arg name="password" value="showmethemoney!@#"></constructor-arg>
+	</bean>
+	
+	<!-- 
+		3.把redis单机版客户端实现类,配置进到IOC容器中. 
+		不要靠扫描,不准确,手工配好. 
+		这个类中的字段"jedisPool",不需要在这里配. 
+		因为该字段的注解是@AutoWired,spring会自动来这里找这个bean,并在类那边注入.
+	-->
+	<bean id="jedisClientSingle" class="com.cj.core.utils.impl.JedisClientSingle"/>
+	
+	<!-- 
+		4.配置redis客户端集群版.
+		(连接Redis集群版时,把这个注释打开.)
+		
+		注意:单机版和集群版的客户端,不能共存!! 
+		因为,以后要往service里,注入这俩客户端的公用的父类接口.
+			 这个接口的实现类有两个.一个是单机版,一个是集群版.
+			 所以,注入的时候,就会抛异常. 不知道注入哪个.
+		想用哪个,在这里就把另一个注释掉.
+		
+		jedisCluster: 用来连接集群版Redis的对象.
+		constructor-arg: jedisCluster的构造方法.
+		<set>: jedisCluster的构造方法,需要一个Set集合.里面装着每个Redis的实例. 记得么,去看类.
+		HostAndPort: 是Set集合里装的对象. 去看类,是这样写的: Set<HostAndPort> nodes = new HashSet<>();
+		constructor-arg: HostAndPort对象的构造方法的俩参数.
+		host: Redis服务器集群的每个实例的ip. 需要根据实际的改.
+		port:服务器集群的每个实例的端口. 需要根据实际的改.
+		这次搭建的Redis伪集群,共有六个实例.
+		
+	-->
+	<!-- 
+	<bean id="jedisCluster" class="redis.clients.jedis.JedisCluster">
+		<constructor-arg>
+			<set>
+				<bean class="redis.clients.jedis.HostAndPort">
+					<constructor-arg name="host" value="192.168.172.134"/>
+					<constructor-arg name="port" value="7001"/>
+				</bean>
+				<bean class="redis.clients.jedis.HostAndPort">
+					<constructor-arg name="host" value="192.168.172.134"/>
+					<constructor-arg name="port" value="7002"/>
+				</bean>
+				<bean class="redis.clients.jedis.HostAndPort">
+					<constructor-arg name="host" value="192.168.172.134"/>
+					<constructor-arg name="port" value="7003"/>
+				</bean>
+				<bean class="redis.clients.jedis.HostAndPort">
+					<constructor-arg name="host" value="192.168.172.134"/>
+					<constructor-arg name="port" value="7004"/>
+				</bean>
+				<bean class="redis.clients.jedis.HostAndPort">
+					<constructor-arg name="host" value="192.168.172.134"/>
+					<constructor-arg name="port" value="7005"/>
+				</bean>
+				<bean class="redis.clients.jedis.HostAndPort">
+					<constructor-arg name="host" value="192.168.172.134"/>
+					<constructor-arg name="port" value="7006"/>
+				</bean>
+			</set>
+		</constructor-arg>
+	</bean>
+	-->
+	
+	<!--
+		5.把redis集群版客户端实现类,配置进到IOC容器中.
+		(连接Redis集群版时,把这个注释打开.)
+	<bean id="jedisClientCluster" class="com.cj.core.utils.impl.JedisClientCluster"/> 
+	-->
+	<!--#######################################redis配置结束#######################################-->
+
+</beans>

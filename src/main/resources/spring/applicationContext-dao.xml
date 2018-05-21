@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:context="http://www.springframework.org/schema/context" xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:aop="http://www.springframework.org/schema/aop" xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+	http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.0.xsd
+	http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.0.xsd http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.0.xsd
+	http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-4.0.xsd">
+
+	<!-- 数据库连接池 -->
+	<!-- 
+		加载资源文件. 
+		第一种方式:
+		老套路,加载这个properties配置文件后,下面才可以用${}的方式解耦取值. 
+		注意路径: 得去web模块的src/main/resources/目录下,新建这个properties目录了.	
+		注意:不用杜云龙的这种方式,这种方式只能加载一个目录下的所有资源文件.
+			 为了扩展性,我用可以加载多个目录下的资源文件的方式. 李旭的方式.
+	<context:property-placeholder location="classpath:properties/*.properties" />
+	-->
+	<!--第二种方式:-->
+	<bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<!--//关键就是这个"locations",复数s,代表可以加载多个资源文件!! 这次要的就是多个!-->
+		<property name="locations">
+			<!--//上面既然是复数s,代表可以加载多个资源文件,那么下面理所应该就用"list"标签了!-->
+			<list>
+				<!-- //加载第一个资源文件.
+				<value>classpath:properties/jdbc.properties</value>	 
+				-->
+				<value>classpath:properties/*.properties</value>	
+				<!-- 如果还要加载其他目录下的资源文件,在这里接续写value即可. -->
+				<!-- //配置缓存. 李旭,暂时没学到那里.-->
+				<!--<value>classpath:properties/memcached.properties</value>-->
+			</list>
+		</property>
+	</bean>
+	
+	<!--// 数据库连接池 这里用的阿里巴巴的德鲁伊连接池.-->
+	<bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource"
+		destroy-method="close">
+		<property name="url" value="${jdbc.url}" />
+		<property name="username" value="${jdbc.username}" />
+		<property name="password" value="${jdbc.password}" />
+		<property name="driverClassName" value="${jdbc.driver}" />
+		<property name="maxActive" value="10" />
+		<property name="minIdle" value="5" />
+	</bean>
+
+	<!-- 让spring管理sqlsessionfactory 使用mybatis和spring整合包中的 -->
+	<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<!-- 数据库连接池 -->
+		<property name="dataSource" ref="dataSource" />
+		<!-- //加载mybatis的配置文件. 注意value的路径.要和项目中一致.classpath:就是在web模块的src/main/resources目录下 -->
+		<property name="configLocation" value="classpath:mybatis/mybatis.xml" />
+		<!-- 
+			问题:
+			1.杜云龙没扫描mapper映射文件
+				(自己给加上试试)
+			2.杜云龙没配置别名.
+				答案: 这个项目,杜云龙基本都用的是逆向生成的SQL语句.而那些SQL中的"parameterType=",都没用别名!!
+					 既然不用别名,自然也不需要配置别名了. 
+					 (但自己还是推荐配上. 但是逆向生成的SQL用的是全名,这里如果配别名,不冲突吗?)
+					 (而且别名还有个好处,可以用扫到mapper映射文件中,SQL语句优化用的"查询条件专用类".)
+			自己试了下,不用下面两个配置也可以!
+			
+			这行完全不用配置,应该是下面的代理mapper包扫描器,已经把所有的mapper映射文件都匹配了!	
+			下面的别名亲测可用,不会冲突. 而且值得配上.因为以后优化SQL语句时,得让它再去扫描"查询条件类"的包.
+		-->
+			<property name="mapperLocations" value="classpath:com/cj/core/mapper/*.xml"/>
+		
+		<property name="typeAliasesPackage" value="com.cj.core.pojo"/>
+		
+		
+	</bean>
+	<!--"包扫描器",去掉mapper的实现类,生成mapper的代理bean-->
+	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<!--//配置MapperScannerConfigurer的属性,指向mapper的接口们的所在包.-->
+		<property name="basePackage" value="com.cj.core.mapper" />
+	</bean>
+</beans>

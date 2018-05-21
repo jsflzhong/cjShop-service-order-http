@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <annotationProcessing>
+      <profile name="Maven default annotation processors profile" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <module name="cjShop-service-order" />
+        <module name="cjShop-service-rest" />
+        <module name="cjShop-service-sso" />
+      </profile>
+    </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="cjShop-service-order" target="1.7" />
+      <module name="cjShop-service-rest" target="1.7" />
+      <module name="cjShop-service-sso" target="1.7" />
+    </bytecodeTargetLevel>
+  </component>
+</project>

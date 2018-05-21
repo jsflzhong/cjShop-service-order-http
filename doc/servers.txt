@@ -1,0 +1,17 @@
+1.nginx反向代理服务器:
+	#/usr/local/nginx/sbin/nginx
+	
+2.fastdfs分布式文件(图片)服务器:
+	#/usr/bin/fdfs_trackerd /etc/fdfs/tracker.conf
+	#/usr/bin/fdfs_storaged /etc/fdfs/storage.conf
+	
+3.各个工程的tomcat的端口:
+	1>.cjShop-back:8080
+	2>.cjShop-service-rest:8081
+	3>.cjshop-front:8082
+	
+	
+	
+	
+	
+	

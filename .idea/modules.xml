@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/cjShop-service-order.iml" filepath="$PROJECT_DIR$/cjShop-service-order.iml" />
+      <module fileurl="file://F:\sources\cjshop&amp;ttshop\cjshop\cjShop-service-order\cjShop-service-sso.iml" filepath="F:\sources\cjshop&amp;ttshop\cjshop\cjShop-service-order\cjShop-service-sso.iml" />
+    </modules>
+  </component>
+</project>

@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="war" name="cjShop-service-sso:war">
+    <output-path>$PROJECT_DIR$/target</output-path>
+    <root id="archive" name="cjShop-service-sso.war">
+      <element id="artifact" artifact-name="cjShop-service-sso:war exploded" />
+    </root>
+  </artifact>
+</component>

@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-4.0.xsd
+        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+    
+    
+    <!-- 
+		//加载资源文件. 
+		//只加载classpath:properties/resource.properties 这一个文件. 这里面含有rest工程webService的服务url.如果有需要加载更多,这里再改成通配符*.properties
+		//由于父子容器问题,所以如果想在controller中注入这个资源文件的内容的话,在springmvc的配置这里就必须加载它.
+	-->
+	<context:property-placeholder location="classpath:properties/resource.properties" />
+    <!-- 
+    	//"包扫描器"
+    	//扫描这个路径下,所有带@Controller注解的类,把他们放到spring的mvc的容器中.
+     -->    
+    <context:component-scan base-package="com.cj.core.controller"></context:component-scan>
+
+    <!-- //配置注解驱动 , 同时开启json格式的支持 -->
+    <mvc:annotation-driven/>
+    
+    <!-- "视图解析器"
+    	配置前缀和后缀. 
+		进销存项目中,并没有配置视图解析器,为什么?
+			因为,那个项目里,老师在action中用的return,都是直接转发到前台,
+			return "forward:/jsp/main.jsp";
+		//注意前缀的路径. 我们得去web模块的src/man/webapp/WEB-INF/下新建jsp目录.
+		//将来的jsp文件,都放在这里.-->
+    <bean
+		class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+		<property name="prefix" value="/WEB-INF/jsp/" />
+		<property name="suffix" value=".jsp" />
+	</bean>
+
+
+	<!-- =================静态资源映射================ -->
+	<!--
+        location:静态资源的位置.
+        mapping: 请求的url.
+        只要是请求/css/** 这样的url,就会去到"/WEB-INF/css/"下查找对应的css    */
+     -->
+	<mvc:resources location="/WEB-INF/css/" mapping="/css/**"/>
+	<mvc:resources location="/WEB-INF/js/" mapping="/js/**"/>
+	<mvc:resources location="/WEB-INF/images/" mapping="/images/**"/>
+
+	 <!-- 
+	 	"全局日期转换器."
+	 	从李旭那里学来的.
+	 	springmvc中的类型转换器有两种:局部的和全局的.
+	 	这种就是全局的.class=是个接口,得给其注入一个实现类.但是它自己么有.所以我得去手写一个实现类. 
+	 -->
+	 <bean class="org.springframework.web.servlet.mvc.annotation.AnnotationMethodHandlerAdapter">
+	 	<property name="webBindingInitializer">
+	 		<bean class="com.cj.web.pojo.CustomDateEditor2"></bean>
+	 	</property>
+	 </bean>
+	
+	<!--
+		"多媒体文件解析器"
+		李旭:上传图片转换器   
+		只要在springmvc中用到上传功能时,就该加这个配置.	-->
+	
+	<bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+		<!--设定默认编码-->
+		<property name="defaultEncoding" value="UTF-8"></property>
+		<!--设定文件上传的最大值5MB，5*1024*1024 .单位是kb-->
+		<property name="maxUploadSize" value="5242880"></property>
+	</bean>
+
+
+</beans> 
